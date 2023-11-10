@@ -29,7 +29,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r load-libraries, echo=FALSE}
-library(tidyverse)  # Load ggplot2, dplyr, and all the other tidyverse packages
+library(tidyverse)
 library(mosaic)
 library(ggthemes)
 library(readxl)
@@ -41,3 +41,15 @@ library(broom)
 
 ## Introduction
 
+```{r}
+# Import and clean data
+data_dir <- "data"
+files <- fs::dir_ls(path = data_dir, regexp = "\\.csv$", recurse = TRUE) 
+files
+
+#read them all in using vroom::vroom()
+stop_search_data <- vroom::vroom(files, id = "source", na = c("", "NA", "N/A")) %>% 
+  janitor::clean_names()
+
+glimpse(whr2013_2023)
+```
