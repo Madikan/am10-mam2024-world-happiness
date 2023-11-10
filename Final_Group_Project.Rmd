@@ -37,19 +37,95 @@ library(here)
 library(skimr)
 library(janitor)
 library(broom)
+library(skimr)
+library(lubridate)
+library(plyr)
 ```
 
-## Introduction
+## Introduction:
+
+1.  [**Data Preparation:**]{.underline}
 
 ```{r}
-# Import and clean data
-data_dir <- "data"
-files <- fs::dir_ls(path = data_dir, regexp = "\\.csv$", recurse = TRUE) 
-files
+# Import data and clean names
+whr2015_2022 <- read.csv(here::here("data/world-happiness-report-2015-2022-cleaned.csv"),
+                     stringsAsFactors = FALSE)%>%
+  janitor::clean_names() 
+  
+# Remove the index column
+whr2015_2022 <- select(whr2015_2022, -x) 
 
-#read them all in using vroom::vroom()
-stop_search_data <- vroom::vroom(files, id = "source", na = c("", "NA", "N/A")) %>% 
-  janitor::clean_names()
+# Replace commas with dots and remove asterisks
+whr2015_2022 <- data.frame(lapply(whr2015_2022, function(x) gsub(",", ".", x)))
+whr2015_2022 <- data.frame(lapply(whr2015_2022, function(x) gsub("\\*", "", x)))
 
-glimpse(whr2013_2023)
+# Convert columns to numeric
+columns_to_convert <- c("happiness_rank", "happiness_score", "economy_gdp_per_capita", "family_social_support", "health_life_expectancy", "freedom", "trust_government_corruption", "generosity", "year")
+whr2015_2022[columns_to_convert] <- lapply(whr2015_2022[columns_to_convert], as.numeric)
+
+# Mapping for inconsistent country names
+country_name_mapping <- c(
+  "Taiwan Province of China" = "Taiwan",
+  "Hong Kong S.A.R. of China" = "Hong Kong",
+  "Hong Kong S.A.R., China" = "Hong Kong",
+  "Hong Kong S.A.R.. China" = "Hong Kong",
+  "Czechia" = "Czech Republic",
+  "North Macedonia" = "Macedonia")
+
+# Apply the mapping to consolidate country names
+whr2015_2022$country <- mapvalues(whr2015_2022$country, from = names(country_name_mapping), to = country_name_mapping)
+
+# Mapping for inconsistent region names
+region_name_mapping <- c(
+  "Eastern Asia" = "East Asia",
+  "Southeastern Asia" = "Southeast Asia",
+  "Southern Asia" = "South Asia",
+  "Middle East and Northern Africa" = "Middle East and North Africa")
+
+# Apply the mapping to consolidate region names
+whr2015_2022$region <- mapvalues(whr2015_2022$region, from = names(region_name_mapping), to = region_name_mapping)
+
+# Define the correct region for each country based on the standardized assignments
+correct_regions <- c(
+  "Belarus" = "Central and Eastern Europe",
+  "Belize" = "Latin America and Caribbean",
+  "Canada" = "North America",
+  "Gambia" = "Sub-Saharan Africa",
+  "Georgia" = "Central and Eastern Europe",
+  "Hong Kong S.A.R. of China" = "East Asia",
+  "Kazakhstan" = "Central and Eastern Europe",
+  "Kyrgyzstan" = "Central and Eastern Europe",
+  "Moldova" = "Central and Eastern Europe",
+  "Namibia" = "Sub-Saharan Africa",
+  "New Zealand" = "Australia and New Zealand",
+  "Macedonia" = "Central and Eastern Europe",
+  "Russia" = "Central and Eastern Europe",
+  "Somalia" = "Sub-Saharan Africa",
+  "South Sudan" = "Sub-Saharan Africa",
+  "Taiwan Province of China" = "East Asia",
+  "Tajikistan" = "Central and Eastern Europe",
+  "Turkmenistan" = "Central and Eastern Europe",
+  "Ukraine" = "Central and Eastern Europe",
+  "United States" = "North America",
+  "Uzbekistan" = "Central and Eastern Europe"
+)
+
+# Update the region for each country in the dataset
+for (country in names(correct_regions)) {
+  whr2015_2022[whr2015_2022$country == country, "region"] <- correct_regions[country]
+}
+
+# View the updated data
+glimpse(whr2015_2022)
+```
+
+2.  [**Data exploration:**]{.underline}
+
+```{r}
+skim(whr2015_2022)
+```
+
+```{r}
+
+
 ```
