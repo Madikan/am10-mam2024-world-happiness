@@ -15,17 +15,7 @@ output:
 ```{r, setup, echo=FALSE}
 knitr::opts_chunk$set(
   message = FALSE, 
-  warning = FALSE, 
-  tidy=FALSE,     # display code as typed
-  size="small")   # slightly smaller font for code
-options(digits = 3)
-
-# default figure size
-knitr::opts_chunk$set(
-  fig.width=6.75, 
-  fig.height=6.75,
-  fig.align = "center"
-)
+  warning = FALSE)
 ```
 
 ```{r load-libraries, echo=FALSE}
@@ -40,6 +30,8 @@ library(broom)
 library(skimr)
 library(lubridate)
 library(plyr)
+library(RColorBrewer)
+library(rworldmap)
 ```
 
 ## Introduction:
@@ -72,7 +64,11 @@ country_name_mapping <- c(
   "Czechia" = "Czech Republic",
   "North Macedonia" = "Macedonia", 
   "Trinidad & Tobago" = "Trinidad and Tobago", 
-  "North Cyprus" = "Northern Cyprus")
+  "North Cyprus" = "Northern Cyprus",
+  "Somaliland region" = "Somalia",
+  "Somaliland Region" = "Somalia", 
+  "Palestinian Territories" = "Palestine", 
+  "Eswatini. Kingdom of" = "Swaziland")
 
 # Apply the mapping to consolidate country names
 whr2015_2022$country <- mapvalues(whr2015_2022$country, from = names(country_name_mapping), to = country_name_mapping)
@@ -114,7 +110,7 @@ correct_regions <- c(
   "Niger" = "Sub-Saharan Africa",
   "Comoros" = "Sub-Saharan Africa",
   "Palestinian Territories" = "Middle East and North Africa",
-  "Eswatini. Kingdom of" = "Sub-Saharan Africa",
+  "Swaziland" = "Sub-Saharan Africa",
   "Madagascar" = "Sub-Saharan Africa",
   "Chad" = "Sub-Saharan Africa",
   "Yemen" = "Middle East and North Africa",
@@ -133,7 +129,7 @@ correct_regions <- c(
   "Ukraine" = "Central and Eastern Europe",
   "United States" = "North America",
   "Uzbekistan" = "Central and Eastern Europe",
-  "Northern Cyprus" = "Europe"
+  "Northern Cyprus" = "Western Europe"
 )
 
 # Update the region for each country in the dataset
@@ -151,7 +147,24 @@ glimpse(whr2015_2022)
 skim(whr2015_2022)
 ```
 
-```{r}
+```{r, message=FALSE}
+country_data <- data.frame(
+  country=whr2015_2022$country,
+  value=whr2015_2022$happiness_score)
 
+cols <- colorRampPalette(brewer.pal(7,"Greens"))(length(whr2015_2022))
 
+capture.output(n <- invisible(joinCountryData2Map(country_data, 
+                                   joinCode="NAME", 
+                                   nameJoinColumn="country")), file='NUL')
+
+mapCountryData(n, 
+               nameColumnToPlot="value", 
+               mapTitle="World Map for Happiness Score",
+               colourPalette=cols, 
+               oceanCol = "#CCCCCCCC", 
+               addLegend = TRUE, 
+               aspect = 1.1, 
+               borderCol = "Black", 
+               lwd =.1)
 ```
