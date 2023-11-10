@@ -20,6 +20,7 @@ knitr::opts_chunk$set(
 
 ```{r load-libraries, echo=FALSE}
 library(tidyverse)
+library(ggplot2)
 library(mosaic)
 library(ggthemes)
 library(readxl)
@@ -32,6 +33,13 @@ library(lubridate)
 library(plyr)
 library(RColorBrewer)
 library(rworldmap)
+library(ggchicklet)
+library(hrbrthemes)
+library(gridExtra)
+library(patchwork)
+library(ggbeeswarm)
+library(scales)
+library(plotly)
 ```
 
 ## [Introduction:]{.underline}
@@ -109,7 +117,7 @@ correct_regions <- c(
   "Congo" = "Sub-Saharan Africa",
   "Niger" = "Sub-Saharan Africa",
   "Comoros" = "Sub-Saharan Africa",
-  "Palestinian Territories" = "Middle East and North Africa",
+  "Palestine" = "Middle East and North Africa",
   "Swaziland" = "Sub-Saharan Africa",
   "Madagascar" = "Sub-Saharan Africa",
   "Chad" = "Sub-Saharan Africa",
@@ -200,25 +208,151 @@ mapCountryData(n,
 
 ```{r}
 # Plot 1
-ggplot(whr2015_2022, aes(x= happiness_score, y = economy_gdp_per_capita)) + 
+ggplot(whr2015_2022, aes(x=economy_gdp_per_capita, y=happiness_score )) + 
   geom_point() + 
   geom_smooth(lm = loess) + 
-  labs(title = "Score vs. GDP",
-       x = "Happiness Score",
-       y = "GDP per capita")
+  labs(title = "GDP per capita vs. Happiness Score",
+       x = "GDP per capita",
+       y = "Happiness Score")
 
 # Plot 2
-ggplot(whr2015_2022, aes(x= happiness_score, y = health_life_expectancy)) + 
+ggplot(whr2015_2022, aes(x=health_life_expectancy, y = happiness_score)) + 
   geom_point() + 
   geom_smooth(lm = loess) + 
-  labs(title = "Score vs. Health Expectancy",
-       x = "Happiness Score",
-       y = "Health (Life expectancy)")
+  labs(title = "Health (Life expectancy) vs. Happiness Score",
+       x = "Health (Life expectancy)",
+       y = "Happiness Score")
 
 # Plot 3
-ggplot(whr2015_2022, aes(x= happiness_score, y = freedom)) + 
+ggplot(whr2015_2022, aes(x = happiness_score, y = freedom)) + 
   geom_boxplot() + 
-  labs(title = "Score vs. Freedom",
+  labs(title = "Happiness Score vs. Freedom",
        x = "Happiness Score",
        y = "Freedom")
+```
+
+```{r}
+whr2022 <- whr2015_2022 %>%
+  filter(year == 2022)
+
+# Select top 10 and bottom 10 countries based on happiness score
+top10_bottom10_countries <- whr2022 %>%
+  arrange(desc(happiness_score)) %>%
+  slice(c(1:10, (n()-9):n()))
+
+# Plotting
+ggplot(top10_bottom10_countries) +
+  geom_point(aes(x = economy_gdp_per_capita, 
+                 y = happiness_score, 
+                 size = happiness_score, 
+                 colour = factor(region),
+                 alpha = 0.85)) +
+  scale_size_continuous(range = c(2, 15)) +
+  geom_vline(xintercept = 1.4, colour = "#f7347a", linetype = "longdash") + 
+  geom_hline(yintercept = 5, colour = "#f7347a", linetype = "longdash") +
+  geom_text(aes(x = economy_gdp_per_capita, y = happiness_score, label = country), 
+            hjust = "left", 
+            vjust = "bottom", 
+            check_overlap = TRUE, 
+            size = 3) +
+  theme(legend.position = "none") +
+  labs(title = "Happiness vs. GDP per capita for Top 5 and Bottom 5 countries in 2022",
+       x = "GDP per capita",
+       y = "Happiness score") +
+  annotate("text", x = 0.83, y = 5.2, family = "Helvetica", size = 2.7, color = "gray20",
+           label = "Lower GDP per capita") +
+  annotate("text", x = 1.95, y = 5.2, family = "Helvetica", size = 2.7, color = "gray20",
+           label = "Higher GDP per capita") +
+  annotate("text", x = 1.53, y = 2.3, family = "Helvetica", size = 2.7, color = "gray20",
+           label = "Lower Happiness") +
+  annotate("text", x = 1.53, y = 8, family = "Helvetica", size = 2.7, color = "gray20",
+           label = "Higher Happiness")
+```
+
+```{r, fig.height=5, fig.width=10, dpi=300}
+# Getting top 10 countries
+whr2015_2022_top10 <- whr2022 %>%
+  slice_max(happiness_score, n = 10) %>%
+  mutate(cat = 'top_10', 
+         country_rank = rank(-happiness_score),
+         country_label = paste0(country, ' (', country_rank, ')'))
+
+# Getting bottom 10 countries
+whr2015_2022_bottom10 <- whr2022 %>%
+  mutate(country_rank = rank(happiness_score),
+         country_label = paste0(country, ' (', country_rank, ')')) %>%
+  slice_min(happiness_score, n = 10) %>%
+  mutate(cat = 'bottom_10')
+
+# Plotting top 10 happiest countries 
+top_10 <- ggplot(whr2015_2022_top10, aes(x = reorder(country_label, happiness_score))) + 
+  geom_chicklet(aes(y = 10, fill = 4.9), width = 0.5, radius = grid::unit(5, "pt")) +
+  geom_chicklet(aes(y = happiness_score, fill = happiness_score), width = 0.5, radius = grid::unit(5, "pt")) +
+  geom_text(aes(y = happiness_score), label = round(whr2015_2022_top10$happiness_score,2), nudge_y = 0.4, size = 3) + 
+  scale_y_continuous(expand = c(0, 0.1), position = "right", limits = c(0, 10)) +
+  scale_fill_gradient2(low = 'black', high = '#818aeb', mid = 'white', midpoint = 5) + 
+  coord_flip() +
+  labs(y="Best possible life = 10", x = '',
+       title="Top 10 Happiest Countries in 2022",
+       subtitle="8 of the happiest countries present in Europe",
+       caption="Source: The World Happiness Report 2022") + 
+  theme_ipsum(grid = '')  +
+  theme(plot.title = element_text(size=15),
+        plot.subtitle = element_text(size = 12),
+        plot.caption = element_text(size = 10),
+        axis.title.x = element_text(size= 10, color = '#555955'),
+        axis.text.y = element_text(size = 10, color = 'black'),
+        axis.text.x = element_blank(),
+        legend.position = 'None')
+
+# Plotting 10 saddest countries
+bottom_10 <- ggplot(whr2015_2022_bottom10, aes(x = reorder(country_label, happiness_score))) + 
+  geom_chicklet(aes(y = 10, fill = 4.9), width = 0.5, radius = grid::unit(5, "pt")) +
+  geom_chicklet(aes(y = happiness_score, fill = happiness_score), width = 0.5, radius = grid::unit(5, "pt")) +
+  geom_text(aes(y = happiness_score), label = round(whr2015_2022_bottom10$happiness_score,2), nudge_y = 0.4, size = 3) + 
+  scale_y_continuous(expand = c(0, 0.1), position = "right", limits = c(0, 10)) +
+  scale_fill_gradient2(low = '#074040', high = '#4cc2c2', mid = 'white', midpoint = 5) + 
+  coord_flip() +
+  labs(y="Best possible life = 10", x = '',
+       title="Top 10 Saddest Countries in 2022",
+       subtitle="Mostly struck by poverty",
+       caption="Source: The World Happiness Report 2022") + 
+  theme_ipsum(grid = '') +
+  theme(plot.title = element_text(size=15),
+        plot.subtitle = element_text(size = 12),
+        plot.caption = element_text(size = 10),
+        axis.title.x = element_text(size= 10, color = '#555955'),
+        axis.text.y = element_text(size = 10, color = 'black'),
+        axis.text.x = element_blank(),
+        legend.position = 'None')
+
+# Displaying plots side by side
+top_10 + bottom_10
+```
+
+```{r}
+# Creating a new variable for sorted regions
+whr2022_sorted <- whr2022 %>%
+  group_by(region) %>%
+  mutate(avg_happiness = mean(happiness_score)) %>%
+  ungroup() %>%
+  mutate(region_sorted = reorder(region, avg_happiness))
+
+# Plotting with regions sorted by happiness score
+region_level <- ggplot(whr2022_sorted, aes(x = region_sorted, y = happiness_score, fill = region_sorted, text = country)) +
+  geom_beeswarm(aes(color = region_sorted, alpha = 1)) +
+  labs(title = "Country-wise happiness trends in world regions",
+       x = "Region",
+       y = "Happiness score") +
+  geom_hline(yintercept = 5, colour = "#f7347a", linetype = "longdash") +
+  theme_classic() +
+  theme(legend.position = "none", 
+        axis.text.x = element_text(angle = 0, hjust = 1, size = 8)) +
+  scale_x_discrete(labels = wrap_format(10)) +  
+  scale_fill_brewer(palette = "Spectral") +
+  scale_color_brewer(palette = "Spectral") +
+  geom_boxplot(aes(alpha = 2))
+
+# Convert to ggplotly with tooltips
+ggplotly(region_level, tooltip = c("country", "happiness_score"))
 ```
