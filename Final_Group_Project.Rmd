@@ -70,7 +70,9 @@ country_name_mapping <- c(
   "Hong Kong S.A.R., China" = "Hong Kong",
   "Hong Kong S.A.R.. China" = "Hong Kong",
   "Czechia" = "Czech Republic",
-  "North Macedonia" = "Macedonia")
+  "North Macedonia" = "Macedonia", 
+  "Trinidad & Tobago" = "Trinidad and Tobago", 
+  "North Cyprus" = "Northern Cyprus")
 
 # Apply the mapping to consolidate country names
 whr2015_2022$country <- mapvalues(whr2015_2022$country, from = names(country_name_mapping), to = country_name_mapping)
@@ -87,27 +89,51 @@ whr2015_2022$region <- mapvalues(whr2015_2022$region, from = names(region_name_m
 
 # Define the correct region for each country based on the standardized assignments
 correct_regions <- c(
-  "Belarus" = "Central and Eastern Europe",
+  "Armenia" = "Central and Eastern Europe",
+  "Australia" = "Australia and New Zealand",
+  "Taiwan" = "East Asia",
   "Belize" = "Latin America and Caribbean",
-  "Canada" = "North America",
+  "Hong Kong" = "East Asia",
+  "Somalia" = "Sub-Saharan Africa",
+  "Namibia" = "Sub-Saharan Africa",
+  "South Sudan" = "Sub-Saharan Africa",
+  "Trinidad and Tobago" = "Latin America and Caribbean",
+  "North Cyprus" = "Western Asia or Europe",
+  "Macedonia" = "Central and Eastern Europe",
   "Gambia" = "Sub-Saharan Africa",
+  "Luxembourg" = "Western Europe",
+  "Czech Republic" = "Central and Eastern Europe",
+  "Guatemala" = "Latin America and Caribbean",
+  "Kuwait" = "Middle East and North Africa",
+  "Belarus" = "Central and Eastern Europe",
+  "Turkmenistan" = "Central and Eastern Europe",
+  "Libya" = "Middle East and North Africa",
+  "Azerbaijan" = "Central and Eastern Europe",
+  "Liberia" = "Sub-Saharan Africa",
+  "Congo" = "Sub-Saharan Africa",
+  "Niger" = "Sub-Saharan Africa",
+  "Comoros" = "Sub-Saharan Africa",
+  "Palestinian Territories" = "Middle East and North Africa",
+  "Eswatini. Kingdom of" = "Sub-Saharan Africa",
+  "Madagascar" = "Sub-Saharan Africa",
+  "Chad" = "Sub-Saharan Africa",
+  "Yemen" = "Middle East and North Africa",
+  "Mauritania" = "Sub-Saharan Africa",
+  "Lesotho" = "Sub-Saharan Africa",
+  "Botswana" = "Sub-Saharan Africa",
+  "Rwanda" = "Sub-Saharan Africa",
+  "Canada" = "North America",
   "Georgia" = "Central and Eastern Europe",
-  "Hong Kong S.A.R. of China" = "East Asia",
   "Kazakhstan" = "Central and Eastern Europe",
   "Kyrgyzstan" = "Central and Eastern Europe",
   "Moldova" = "Central and Eastern Europe",
-  "Namibia" = "Sub-Saharan Africa",
   "New Zealand" = "Australia and New Zealand",
-  "Macedonia" = "Central and Eastern Europe",
   "Russia" = "Central and Eastern Europe",
-  "Somalia" = "Sub-Saharan Africa",
-  "South Sudan" = "Sub-Saharan Africa",
-  "Taiwan Province of China" = "East Asia",
   "Tajikistan" = "Central and Eastern Europe",
-  "Turkmenistan" = "Central and Eastern Europe",
   "Ukraine" = "Central and Eastern Europe",
   "United States" = "North America",
-  "Uzbekistan" = "Central and Eastern Europe"
+  "Uzbekistan" = "Central and Eastern Europe",
+  "Northern Cyprus" = "Europe"
 )
 
 # Update the region for each country in the dataset
