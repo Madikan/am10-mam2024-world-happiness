@@ -147,12 +147,22 @@ glimpse(whr2015_2022)
 skim(whr2015_2022)
 ```
 
-```{r, message=FALSE}
+```{r, fig.height=7, fig.width=10, dpi=300}
 country_data <- data.frame(
   country=whr2015_2022$country,
   value=whr2015_2022$happiness_score)
 
-cols <- colorRampPalette(brewer.pal(7,"Greens"))(length(whr2015_2022))
+# Define the colors for the low, mid, and high values
+low_color <- "#FF9999"  # Softer red
+mid_color <- "#FFFF99"  # Softer yellow
+high_color <- "#99CC99" # Softer green
+
+# Create the color palette function
+cols <- colorRampPalette(c(low_color, mid_color, high_color))
+
+# Use this 'cols' function to generate the number of colors you need
+# For example, if you have 100 different values:
+palette_colors <- cols(length(whr2015_2022))
 
 capture.output(n <- invisible(joinCountryData2Map(country_data, 
                                    joinCode="NAME", 
@@ -160,9 +170,10 @@ capture.output(n <- invisible(joinCountryData2Map(country_data,
 
 mapCountryData(n, 
                nameColumnToPlot="value", 
-               mapTitle="World Map for Happiness Score",
-               colourPalette=cols, 
-               oceanCol = "#CCCCCCCC", 
+               mapTitle="World Map for Happiness Score 2015-2022",
+               colourPalette=palette_colors, 
+               oceanCol = "#F0F8FF", 
+               missingCountryCol = "#CCCCCCCC",
                addLegend = TRUE, 
                aspect = 1.1, 
                borderCol = "Black", 
