@@ -34,7 +34,7 @@ library(RColorBrewer)
 library(rworldmap)
 ```
 
-## Introduction:
+## [Introduction:]{.underline}
 
 1.  [**Data Preparation:**]{.underline}
 
@@ -147,7 +147,10 @@ glimpse(whr2015_2022)
 skim(whr2015_2022)
 ```
 
+## [Data visualization:]{.underline}
+
 ```{r, fig.height=7, fig.width=10, dpi=300}
+# Create dataframe with data
 country_data <- data.frame(
   country=whr2015_2022$country,
   value=whr2015_2022$happiness_score)
@@ -160,14 +163,16 @@ high_color <- "#99CC99" # Softer green
 # Create the color palette function
 cols <- colorRampPalette(c(low_color, mid_color, high_color))
 
-# Use this 'cols' function to generate the number of colors you need
-# For example, if you have 100 different values:
+# Use cols function to generate the number of colors we need
 palette_colors <- cols(length(whr2015_2022))
 
+# Countries to Map function
 capture.output(n <- invisible(joinCountryData2Map(country_data, 
                                    joinCode="NAME", 
                                    nameJoinColumn="country")), file='NUL')
 
+# Output plot in pdf
+pdf("world_happiness_map.pdf", width = 10, height = 7)
 mapCountryData(n, 
                nameColumnToPlot="value", 
                mapTitle="World Map for Happiness Score 2015-2022",
@@ -178,4 +183,42 @@ mapCountryData(n,
                aspect = 1.1, 
                borderCol = "Black", 
                lwd =.1)
+capture.output(dev.off(), file='NUL')
+
+# Output plot in R console
+mapCountryData(n, 
+               nameColumnToPlot="value", 
+               mapTitle="World Map for Happiness Score 2015-2022",
+               colourPalette=palette_colors, 
+               oceanCol = "#F0F8FF", 
+               missingCountryCol = "#CCCCCCCC",
+               addLegend = TRUE, 
+               aspect = 1.1, 
+               borderCol = "Black", 
+               lwd =.1)
+```
+
+```{r}
+# Plot 1
+ggplot(whr2015_2022, aes(x= happiness_score, y = economy_gdp_per_capita)) + 
+  geom_point() + 
+  geom_smooth(lm = loess) + 
+  labs(title = "Score vs. GDP",
+       x = "Happiness Score",
+       y = "GDP per capita")
+
+# Plot 2
+ggplot(whr2015_2022, aes(x= happiness_score, y = health_life_expectancy)) + 
+  geom_point() + 
+  geom_smooth(lm = loess) + 
+  labs(title = "Score vs. Health Expectancy",
+       x = "Happiness Score",
+       y = "Health (Life expectancy)")
+
+# Plot 3
+ggplot(whr2015_2022, aes(x= happiness_score, y = freedom)) + 
+  geom_boxplot() + 
+  labs(title = "Score vs. Freedom",
+       x = "Happiness Score",
+       y = "Freedom")
 ```
