@@ -33,7 +33,7 @@ library(lubridate)
 library(plyr)
 library(RColorBrewer)
 library(rworldmap)
-library(ggchicklet)
+library(ggchicklet) # install from remotes::install_github("hrbrmstr/ggchicklet")
 library(hrbrthemes)
 library(gridExtra)
 library(patchwork)
@@ -49,9 +49,9 @@ library(plotly)
 ```{r}
 # Import data and clean names
 whr2015_2022 <- read.csv(here::here("data/world-happiness-report-2015-2022-cleaned.csv"),
-                     stringsAsFactors = FALSE)%>%
+                     stringsAsFactors = FALSE) %>%
   janitor::clean_names() 
-  
+
 # Remove the index column
 whr2015_2022 <- select(whr2015_2022, -x) 
 
