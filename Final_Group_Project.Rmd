@@ -42,9 +42,9 @@ library(scales)
 library(plotly)
 ```
 
-## [Introduction:]{.underline}
+## Introduction:
 
-1.  [**Data Preparation:**]{.underline}
+1.  **Data Preparation:**
 
 ```{r}
 # Import data and clean names
@@ -149,13 +149,13 @@ for (country in names(correct_regions)) {
 glimpse(whr2015_2022)
 ```
 
-2.  [**Data exploration:**]{.underline}
+2.  **Data exploration:**
 
 ```{r}
 skim(whr2015_2022)
 ```
 
-## [Data visualization:]{.underline}
+## Data visualization:
 
 ```{r, fig.height=7, fig.width=10, dpi=300}
 # Create dataframe with data
