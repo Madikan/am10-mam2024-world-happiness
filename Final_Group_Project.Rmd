@@ -188,7 +188,7 @@ capture.output(n <- invisible(joinCountryData2Map(country_data,
 pdf("world_happiness_map.pdf", width = 10, height = 7)
 mapCountryData(n, 
                nameColumnToPlot="value", 
-               mapTitle="World Map for Happiness Score 2015-2022",
+               mapTitle="World Map for Happiness Score 2015-2022 \nMost unhappy countries are located in Sub-Saharan Africa and South-East Asia",
                colourPalette=palette_colors, 
                oceanCol = "#F0F8FF", 
                missingCountryCol = "#CCCCCCCC",
@@ -207,7 +207,7 @@ capture.output(dev.off(), file='NUL')
 # Output plot in R console
 mapCountryData(n, 
                nameColumnToPlot="value", 
-               mapTitle="World Map for Happiness Score 2015-2022",
+               mapTitle="World Map for Happiness Score 2015-2022 \nMost unhappy countries are located in Sub-Saharan Africa and South-East Asia",
                colourPalette=palette_colors, 
                oceanCol = "#F0F8FF", 
                missingCountryCol = "#CCCCCCCC",
@@ -248,7 +248,8 @@ ggplot(top10_bottom10_countries) +
             check_overlap = TRUE, 
             size = 3) +
   theme(legend.position = "none") +
-  labs(title = "Happiness vs. GDP per capita for Top 5 and Bottom 5 countries in 2022",
+  labs(title = "There is a high correlation between higher GDP per capita and higher \nhappiness score, but there can also be lower happiness in higher \nGDP per capita countries.",
+       subtitle = "Happiness vs. GDP per capita for Top 5 and Bottom 5 countries in 2022.",
        x = "GDP per capita",
        y = "Happiness score") +
   annotate("text", x = 0.83, y = 5.2, family = "Helvetica", size = 2.7, color = "gray20",
@@ -334,6 +335,7 @@ whr2022_sorted <- whr2022 %>%
 region_level <- ggplot(whr2022_sorted, aes(x = region_sorted, y = happiness_score, fill = region_sorted, text = country)) +
   geom_beeswarm(aes(color = region_sorted, alpha = 1)) +
   labs(title = "Country-wise happiness trends in world regions",
+       subtitle = "Middle East and North African countries have the highest disparity in Happiness score",
        x = "Region",
        y = "Happiness score") +
   geom_hline(yintercept = 5, colour = "#f7347a", linetype = "longdash") +
@@ -346,7 +348,12 @@ region_level <- ggplot(whr2022_sorted, aes(x = region_sorted, y = happiness_scor
   geom_boxplot(aes(alpha = 2))
 
 # Convert to ggplotly with tooltips
-ggplotly(region_level, tooltip = c("country", "happiness_score"))
+ggplotly(region_level, tooltip = c("country", "happiness_score"))%>%
+  layout(title = list(text = paste0('Country-wise happiness trends in world regions',
+                                    '<br>',
+                                    '<sup>',
+                                    'Middle East and North African countries have the highest disparity in Happiness score',
+                                    '</sup>')))
 ```
 
 ```{r}
@@ -413,7 +420,7 @@ ggplot(joined_data, aes(x = co2_emissions_per_capita, y = happiness_score, size 
   geom_smooth(method = "lm", se = TRUE) +
   scale_x_log10() +
   labs(
-    title = "Higher CO2 Emissions Per Capita Correlates with Higher Happiness",
+    title = "Higher CO2 Emissions Per Capita is correlated with Higher Happiness",
     subtitle = paste("Happiness Score vs CO2 Emissions Per Capita (Log Scale), r =", round(cor_co2, 2)),
     x = "CO2 Emissions Per Capita (Log Scale)",
     y = "Happiness Score",
@@ -428,7 +435,7 @@ ggplot(whr2015_2022, aes(x = health_life_expectancy, y = happiness_score)) +
   geom_point(alpha = 0.5) +
   geom_smooth(method = "lm", se = TRUE) +
   labs(
-    title = "Longer Life Expectancy Associates with Higher Happiness",
+    title = "Longer Life Expectancy is correlated with Higher Happiness",
     subtitle = "Happiness Score relative to Life Expectancy",
     x = "Life Expectancy",
     y = "Happiness Score"
@@ -442,7 +449,7 @@ ggplot(joined_data, aes(x = density_p_km2, y = happiness_score, size = urban_pop
   geom_point(alpha = 0.5) +
   geom_smooth(method = "lm", se = TRUE) +
   labs(
-    title = "Population Density Linked to Happiness",
+    title = "Population Density is inconclusively linked to Happiness",
     subtitle = paste("Happiness Score vs Population Density, r =", round(cor_urban, 2)),
     x = "Population density",
     y = "Happiness Score",
@@ -459,7 +466,7 @@ ggplot(joined_data, aes(x = urban_population_per_capita, y = happiness_score, si
   geom_point(alpha = 0.5) +
   geom_smooth(method = "lm", se = TRUE) +
   labs(
-    title = "Urban Population Per Capita Positively Linked to Happiness",
+    title = "Urban Population Per Capita is positively correlated to Happiness",
     subtitle = paste("Happiness Score vs Urban Population Per Capita, r =", round(cor_urban, 2)),
     x = "Urban Population Per Capita",
     y = "Happiness Score",
@@ -500,7 +507,7 @@ ggplot(forecast_df, aes(x = year, y = value)) +
   scale_x_continuous(breaks = forecast_df$year) +
   labs(title = "The overall worldwide happiness score increased from 2015 to 2022",
        subtitle = "The happiness score is also projected to increase in 2023 and 2024",
-       x = element_blank(), y = "Happiness Score") +
+       x = "Year", y = "Happiness Score") +
   theme_minimal() +
   theme(plot.title = element_text(size = 14),
         axis.text.x = element_text(angle = 45, hjust = 1),
@@ -537,7 +544,7 @@ ggplot(region_yearly_data, aes(x = year, y = avg_happiness_score, group = region
   theme_minimal() +
   labs(title = "The happiness score for each region remained relatively stable from 2015 to 2022",
        subtitle = "The region that earned a largest increase in happiness score is Central and Eastern Europe",
-       x = element_blank(),
+       x = "Year",
        y = "Average Happiness Score") +
   theme(legend.position = "right",
         legend.title = element_blank(),
@@ -571,7 +578,8 @@ ggplot(melted_whr, aes(x = as.factor(year), y = value, fill = variable)) +
   geom_bar(stat = "identity", position = "stack") +
   scale_fill_manual(values = spectral_colors, labels = legend_names) +  # Apply "Spectral" colors with custom legend names
   theme_minimal() +
-  labs(title = "Economy and social support are two main happiness contributors over years",
+  labs(title = "Economy and social support seem to be the two main happiness contributors",
+       subtitle = "Contribution of happiness factors over the years",
        x = "Year", y = "Factor Contribution",
        fill = "Happiness Factor")+
   theme(plot.title = element_text(size = 13),
@@ -583,7 +591,7 @@ ggplot(melted_whr, aes(x = as.factor(year), y = value, fill = variable)) +
 ggplot(whr2015_2022, aes(x = happiness_score, y = factor(year), fill = region)) +
   geom_density_ridges(scale = 1) +
   labs(title = "Distribution of Happiness Scores of Different Countries by Region and Year", x = "Happiness Score", y = "Year",
-       subtitle = "Western Europe always ranks first while Sub-Saharan Africa and South Asia report lower scores") +
+       subtitle = "Western Europe always ranks first while Sub-Saharan Africa and South Asia report \nlower scores") +
   scale_fill_viridis_d() +
   theme(
     panel.background = element_blank(), 
@@ -598,7 +606,9 @@ ggplot(whr2015_2022, aes(x = economy_gdp_per_capita, y = happiness_score)) +
   geom_density_2d_filled() +
   labs(title = "2D Density Plot of GDP per Capita vs. Happiness Score",
        subtitle = "A positive correlation exists with the highest density observed at mid-range values",
-       caption = "Note: Density levels represent the concentration of countries at GDP and happiness score values.") +
+       caption = "Note: Density levels represent the concentration of countries at GDP and happiness score values.",
+       x="GDP per capita",
+       y="Happiness Score") +
   theme_minimal() +
   theme(
     plot.caption = element_text(face = "italic", color = "grey70",hjust = 0))
@@ -611,14 +621,39 @@ ggplot(whr2015_2022, aes(x = reorder(region, happiness_score, FUN = mean), y = h
   geom_boxplot(width = 0.1, fill = "white") +
   scale_fill_viridis_d() +
   labs(title = "Violin Plot of Life Expectancy by Region",
-       subtitle = "Regions ordered by mean happiness score") +
+       subtitle = "Higher life expectancy and uniform distributions are in regions \nwith higher happiness scores",
+       x = "Region",
+       y = "Life expectancy") +
   theme_minimal() +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1),
-    plot.margin = margin(l = 40, unit = "pt")
+    plot.margin = margin(l = 40, unit = "pt"),
+    legend.position = "none"
   )
 ```
 
 ```{r}
+# Categories trust in multiple bins
+categorise_trust <- whr2015_2022 %>% 
+  mutate(trust_category = case_when(
+    trust_government_corruption >= 0.0 & trust_government_corruption <= 0.1 ~ "Very Low",
+    trust_government_corruption > 0.1 & trust_government_corruption <= 0.2 ~ "Low",
+    trust_government_corruption > 0.2 & trust_government_corruption <= 0.3 ~ "Medium",
+    trust_government_corruption > 0.3 & trust_government_corruption <= 0.4 ~ "High",
+    trust_government_corruption > 0.4 ~ "Very High",
+    TRUE ~ NA_character_
+  )) %>% 
+  filter(!is.na(trust_category)) %>% 
+  mutate(trust_category = factor(trust_category, levels = c("Very Low", "Low", "Medium", "High", "Very High")))
 
+# PLot scatter chart
+ggplot(categorise_trust, aes(x = trust_category, y = happiness_score, color = trust_category)) +
+  geom_point(size=2) +
+  labs(title = "Countries with high trust in government seem to be mostly happy, \nwhile there is more disparity with lower levels of trust",
+       subtitle= "Happiness Score by Trust in Government",
+       x = "Trust in Government",
+       y = "Happiness Score") +
+  theme_minimal() +
+  scale_color_brewer(palette = "Pastel1")+ # Optional: This adds a color palette
+  theme(legend.position = "none")
 ```
