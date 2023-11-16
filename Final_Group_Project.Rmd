@@ -40,6 +40,9 @@ library(patchwork)
 library(ggbeeswarm)
 library(scales)
 library(plotly)
+library(forecast)
+library(reshape2)
+library(ggridges)
 ```
 
 ## Introduction:
@@ -47,6 +50,8 @@ library(plotly)
 1.  **Data Preparation:**
 
 ```{r}
+remotes::install_github("hrbrmstr/ggchicklet")
+
 # Import data and clean names
 whr2015_2022 <- read.csv(here::here("data/world-happiness-report-2015-2022-cleaned.csv"),
                      stringsAsFactors = FALSE) %>%
@@ -219,31 +224,6 @@ legend("bottom",  # Adjust position as needed
 ```
 
 ```{r}
-# Plot 1
-ggplot(whr2015_2022, aes(x=economy_gdp_per_capita, y=happiness_score )) + 
-  geom_point() + 
-  geom_smooth(lm = loess) + 
-  labs(title = "GDP per capita vs. Happiness Score",
-       x = "GDP per capita",
-       y = "Happiness Score")
-
-# Plot 2
-ggplot(whr2015_2022, aes(x=health_life_expectancy, y = happiness_score)) + 
-  geom_point() + 
-  geom_smooth(lm = loess) + 
-  labs(title = "Health (Life expectancy) vs. Happiness Score",
-       x = "Health (Life expectancy)",
-       y = "Happiness Score")
-
-# Plot 3
-ggplot(whr2015_2022, aes(x = happiness_score, y = freedom)) + 
-  geom_boxplot() + 
-  labs(title = "Happiness Score vs. Freedom",
-       x = "Happiness Score",
-       y = "Freedom")
-```
-
-```{r}
 whr2022 <- whr2015_2022 %>%
   filter(year == 2022)
 
@@ -367,4 +347,278 @@ region_level <- ggplot(whr2022_sorted, aes(x = region_sorted, y = happiness_scor
 
 # Convert to ggplotly with tooltips
 ggplotly(region_level, tooltip = c("country", "happiness_score"))
+```
+
+```{r}
+# Import data and clean names
+world_data_2023 <- read_csv(here::here("data/world-data-2023.csv")) %>%
+  janitor::clean_names()
+
+# Create a function that converts percentage strings to numeric values
+convert_percent_to_numeric <- function(column) {
+  if (is.character(column)) {
+    # Remove the "%" sign and convert to numeric
+    column <- str_remove_all(column, "%")
+    column <- as.numeric(str_replace_all(column, ",", "."))
+  }
+  column
+}
+
+# Apply the conversion function to all columns that end with "_percent"
+world_data_2023 <- world_data_2023 %>%
+  mutate(
+    across(
+      .cols = c(ends_with("_percent"), ends_with("_rate")),
+      .fns = ~convert_percent_to_numeric(.x)
+    )
+  ) %>%
+  # Divide columns ending with "_percent" or "_rate" by 100
+  mutate(
+    across(
+      .cols = c(ends_with("_percent"), ends_with("_rate")),
+      .fns = ~ .x / 100
+    )
+  )
+
+# Replace commas with dots and remove asterisks from all character columns
+world_data_2023 <- world_data_2023 %>%
+  mutate(across(where(is.character), ~str_replace_all(.x, ",", ".")))
+
+# Remove asterisks from all character columns (if any)
+world_data_2023 <- world_data_2023 %>%
+  mutate(across(where(is.character), ~str_replace_all(.x, "\\*", "")))
+
+# Perform the left join
+joined_data <- left_join(whr2022, world_data_2023, by = "country")
+
+joined_data <- joined_data %>%
+  mutate(
+    co2_emissions_per_capita = case_when(
+      is.na(co2_emissions) | is.na(population) | population == 0 ~ NA_real_,
+      TRUE ~ co2_emissions / population
+    ),
+    urban_population_per_capita = case_when(
+      is.na(urban_population) | is.na(population) | population == 0 ~ NA_real_,
+      TRUE ~ urban_population / population
+    )
+  )
+
+# Calculate the correlation coefficients
+cor_co2 <- cor(joined_data$happiness_score, log10(joined_data$co2_emissions_per_capita), use = "complete.obs")
+cor_urban <- cor(joined_data$happiness_score, joined_data$urban_population_per_capita, use = "complete.obs")
+
+# Scatter plot for Happiness Score vs CO2 Emissions Per Capita (Log Scale)
+ggplot(joined_data, aes(x = co2_emissions_per_capita, y = happiness_score, size = co2_emissions)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = TRUE) +
+  scale_x_log10() +
+  labs(
+    title = "Higher CO2 Emissions Per Capita Correlates with Higher Happiness",
+    subtitle = paste("Happiness Score vs CO2 Emissions Per Capita (Log Scale), r =", round(cor_co2, 2)),
+    x = "CO2 Emissions Per Capita (Log Scale)",
+    y = "Happiness Score",
+    size = "Absolute CO2 Emissions"
+  ) +
+  theme_classic()
+```
+
+```{r}
+# Create a scatter plot for Happiness Score vs Life Expectancy
+ggplot(whr2015_2022, aes(x = health_life_expectancy, y = happiness_score)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    title = "Longer Life Expectancy Associates with Higher Happiness",
+    subtitle = "Happiness Score relative to Life Expectancy",
+    x = "Life Expectancy",
+    y = "Happiness Score"
+  ) +
+  theme_classic()
+```
+
+```{r}
+# Population density plot
+ggplot(joined_data, aes(x = density_p_km2, y = happiness_score, size = urban_population)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    title = "Population Density Linked to Happiness",
+    subtitle = paste("Happiness Score vs Population Density, r =", round(cor_urban, 2)),
+    x = "Population density",
+    y = "Happiness Score",
+    size = "Absolute Urban Population"
+  ) +
+  theme_classic() +
+  theme(legend.key.size = unit(0.5, "lines"))+
+  xlim(0, 500)
+```
+
+```{r}
+# Scatter plot for Happiness Score vs Urban Population Per Capita
+ggplot(joined_data, aes(x = urban_population_per_capita, y = happiness_score, size = urban_population)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    title = "Urban Population Per Capita Positively Linked to Happiness",
+    subtitle = paste("Happiness Score vs Urban Population Per Capita, r =", round(cor_urban, 2)),
+    x = "Urban Population Per Capita",
+    y = "Happiness Score",
+    size = "Absolute Urban Population"
+  ) +
+  theme_classic() +
+  theme(legend.key.size = unit(0.5, "lines"))
+```
+
+```{r}
+# Aggregate data by year
+yearly_data <- aggregate(happiness_score ~ year, whr2015_2022, mean)
+
+# Convert to a time series object
+ts_data <- ts(yearly_data$happiness_score, start = min(yearly_data$year), end = max(yearly_data$year), frequency = 1)
+
+# Fit an ARIMA model
+fit <- auto.arima(ts_data)
+
+# Forecast for the next 2 years (2023 and 2024)
+forecasted_values <- forecast(fit, h = 2)
+
+# Convert the forecast object to a data frame
+forecast_df <- data.frame(
+  year = c(yearly_data$year, (max(yearly_data$year) + 1):(max(yearly_data$year) + 2)),
+  value = c(fitted(fit), forecasted_values$mean),
+  lower = c(rep(NA, length(fitted(fit))), forecasted_values$lower[, "80%"]),
+  upper = c(rep(NA, length(fitted(fit))), forecasted_values$upper[, "80%"])
+)
+
+# Create the plot with ggplot2
+ggplot(forecast_df, aes(x = year, y = value)) +
+  geom_line(size = 1, color = "#99CC99") +
+  geom_point(color = "#99CC99") +
+  geom_line(size = 1, data = forecast_df[length(yearly_data$year) + 1:nrow(forecast_df), ], color = "#FF9999") +
+  geom_point(data = forecast_df[length(yearly_data$year) + 1:nrow(forecast_df), ], color = "#FF9999") +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = "#FF9999", alpha = 0.2) +
+  scale_x_continuous(breaks = forecast_df$year) +
+  labs(title = "The overall worldwide happiness score increased from 2015 to 2022",
+       subtitle = "The happiness score is also projected to increase in 2023 and 2024",
+       x = element_blank(), y = "Happiness Score") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title.position = "plot")
+```
+
+```{r}
+# Aggregate data by region and year
+region_yearly_data <- whr2015_2022 %>%
+  dplyr::group_by(region, year) %>%
+  dplyr::summarize(avg_happiness_score = mean(happiness_score, na.rm = TRUE)) %>%
+  ungroup()
+
+# Calculate overall average happiness score for each region
+region_avg_scores <- region_yearly_data %>%
+  dplyr::group_by(region) %>%
+  dplyr::summarize(overall_avg_happiness = mean(avg_happiness_score)) %>%
+  arrange(desc(overall_avg_happiness)) %>%
+  ungroup()
+
+# Create a color mapping based on these averages using the "Spectral" palette
+num_regions <- nrow(region_avg_scores)
+spectral_colors <- colorRampPalette(brewer.pal(11, "Spectral"))(num_regions)
+names(spectral_colors) <- region_avg_scores$region
+
+# Adjusting the order of the 'region' factor according to happiness score
+region_yearly_data$region <- factor(region_yearly_data$region, levels = region_avg_scores$region)
+
+# Create the trend plot with custom colors
+ggplot(region_yearly_data, aes(x = year, y = avg_happiness_score, group = region, color = region)) +
+  geom_line(size = 1) +
+  geom_point() +
+  scale_color_manual(values = spectral_colors) +
+  theme_minimal() +
+  labs(title = "The happiness score for each region remained relatively stable from 2015 to 2022",
+       subtitle = "The region that earned a largest increase in happiness score is Central and Eastern Europe",
+       x = element_blank(),
+       y = "Average Happiness Score") +
+  theme(legend.position = "right",
+        legend.title = element_blank(),
+        plot.title = element_text(size = 13),
+        plot.subtitle = element_text(size = 12),
+        axis.text = element_text(size = 11),
+        axis.title = element_text(size = 12),
+        legend.text = element_text(size = 10),
+        plot.title.position = "plot")
+```
+
+```{r}
+# Melting data for stacked bar plot
+melted_whr <- melt(whr2015_2022, id.vars = c("year", "country"), 
+                   measure.vars = c("economy_gdp_per_capita", "family_social_support", 
+                                    "health_life_expectancy", "freedom", 
+                                    "trust_government_corruption", "generosity"))
+
+# Determine the number of unique factors (variables) for the color palette
+num_factors <- length(unique(melted_whr$variable))
+
+# Create a color mapping using the "Spectral" palette
+spectral_colors <- colorRampPalette(brewer.pal(11, "Spectral"))(num_factors)
+
+# Define custom names for the legends
+legend_names <- c("Economy (GDP per Capita)", "Family/Social Support", "Health (Life Expectancy)", 
+                  "Freedom", "Trust (Government Corruption)", "Generosity")
+
+# Stacked bar chart with "Spectral" color set and renamed legends
+ggplot(melted_whr, aes(x = as.factor(year), y = value, fill = variable)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_fill_manual(values = spectral_colors, labels = legend_names) +  # Apply "Spectral" colors with custom legend names
+  theme_minimal() +
+  labs(title = "Economy and social support are two main happiness contributors over years",
+       x = "Year", y = "Factor Contribution",
+       fill = "Happiness Factor")+
+  theme(plot.title = element_text(size = 13),
+                                  plot.title.position = "plot")
+```
+
+```{r}
+# Density ridge plot
+ggplot(whr2015_2022, aes(x = happiness_score, y = factor(year), fill = region)) +
+  geom_density_ridges(scale = 1) +
+  labs(title = "Distribution of Happiness Scores of Different Countries by Region and Year", x = "Happiness Score", y = "Year",
+       subtitle = "Western Europe always ranks first while Sub-Saharan Africa and South Asia report lower scores") +
+  scale_fill_viridis_d() +
+  theme(
+    panel.background = element_blank(), 
+    axis.text.y = element_text(hjust = 1),
+    axis.title.x = element_text(vjust = 0.5, hjust = 0.5),
+    axis.title.y = element_text(angle = 90, vjust = 0.5, hjust = 0.5)) 
+```
+
+```{r}
+# 2D Density plot
+ggplot(whr2015_2022, aes(x = economy_gdp_per_capita, y = happiness_score)) +
+  geom_density_2d_filled() +
+  labs(title = "2D Density Plot of GDP per Capita vs. Happiness Score",
+       subtitle = "A positive correlation exists with the highest density observed at mid-range values",
+       caption = "Note: Density levels represent the concentration of countries at GDP and happiness score values.") +
+  theme_minimal() +
+  theme(
+    plot.caption = element_text(face = "italic", color = "grey70",hjust = 0))
+```
+
+```{r}
+# Violin plot
+ggplot(whr2015_2022, aes(x = reorder(region, happiness_score, FUN = mean), y = health_life_expectancy, fill = region)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.1, fill = "white") +
+  scale_fill_viridis_d() +
+  labs(title = "Violin Plot of Life Expectancy by Region",
+       subtitle = "Regions ordered by mean happiness score") +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.margin = margin(l = 40, unit = "pt")
+  )
+```
+
+```{r}
+
 ```
