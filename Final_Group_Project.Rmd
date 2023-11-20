@@ -470,7 +470,7 @@ ggplot(joined_data, aes(x = life_expectancy, y = happiness_score)) +
     x = "Life Expectancy",
     y = "Happiness Score"
   ) +
-  theme_minimal()
+  theme_classic()
 ```
 
 ```{r}
