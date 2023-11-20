@@ -250,26 +250,6 @@ capture.output(n <- invisible(joinCountryData2Map(country_data,
                                    joinCode="NAME", 
                                    nameJoinColumn="country")), file='NUL')
 
-# Output plot in pdf
-pdf("world_happiness_map.pdf", width = 10, height = 7)
-mapCountryData(n, 
-               nameColumnToPlot="value", 
-               mapTitle="Most unhappy countries are located in Sub-Saharan Africa and South-East Asia\nWorld Map for Happiness Score 2015-2022",
-               colourPalette=palette_colors, 
-               oceanCol = "#F0F8FF", 
-               missingCountryCol = "#CCCCCCCC",
-               addLegend = TRUE, 
-               aspect = 1.1, 
-               borderCol = "Black", 
-               lwd =.1)
-
-legend("bottom",  # Adjust position as needed
-       legend=c("Low", "Medium", "High"),  # Example categories
-       fill=c(low_color, mid_color, high_color),  # Corresponding colors
-       title="Happiness Score",  # Title of the legend
-       cex=0.8)  # Adjust text size as needed
-capture.output(dev.off(), file='NUL')
-
 # Output plot in R console
 mapCountryData(n, 
                nameColumnToPlot="value", 
@@ -451,7 +431,7 @@ ggplot(joined_data, aes(x = co2_emissions_per_capita, y = happiness_score, size 
     subtitle = paste("Happiness Score relative to CO2 Emissions Per Capita (Log Scale), r =", round(cor_co2, 2)),
     x = "CO2 Emissions Per Capita (Log Scale)",
     y = "Happiness Score",
-    size = "CO2 Emissions"
+    size = "Absolute CO2 Emissions"
   ) +
   theme_classic()
 ```
