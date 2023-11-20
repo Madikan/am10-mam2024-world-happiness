@@ -502,7 +502,8 @@ ggplot(joined_data, aes(x = urban_population_per_capita, y = happiness_score, si
     size = "Absolute Urban Population"
   ) +
   theme_classic() +
-  theme(legend.key.size = unit(0.5, "lines"))
+  theme(legend.key.size = unit(0.5, "lines"))+
+  theme(legend.position = "none")
 ```
 
 ```{r}
