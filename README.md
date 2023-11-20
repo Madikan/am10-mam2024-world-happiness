@@ -3,7 +3,7 @@
 # Final Project Assignment - Group 12:
 This is our final group assignment for the Data Visualization and Storytelling course at LBS (MAM 2024).
 
-In a world brimming with diverse cultures, economies, and environments, the quest for happiness remains a universal endeavor. Our group's project embarks on an exploratory journey through the World Happiness Reports from 2015 to 2022. These reports, an amalgam of data, surveys, and research, offer a unique lens to view the changing landscapes of global happiness. The aim of this study is to understand what happiness is and what it would take to improve it, a task which requires a holistic approach considering both material and non-material aspects of
+In a world brimming with diverse cultures, economies, and environments, the quest for happiness remains a universal endeavor. Our group's project embarks on an exploratory journey through the World Happiness Reports from 2015 to 2022. These reports, an amalgam of data, surveys, and research, offer a unique lens to view the changing landscapes of global happiness. The aim of this study is to understand what happiness is and what it would take to improve upon it, a task which requires a holistic approach considering both material and non-material aspects of
 well-being.
 
 The database we are using is the World Happiness Report from 2015 to 2022, and can be found here: https://www.kaggle.com/datasets/mayzannilarthein44/world-happiness-report-2015-to-2022/
