@@ -443,17 +443,17 @@ cor_urban <- cor(joined_data$happiness_score, joined_data$urban_population_per_c
 
 # Scatter plot for Happiness Score vs CO2 Emissions Per Capita (Log Scale)
 ggplot(joined_data, aes(x = co2_emissions_per_capita, y = happiness_score, size = co2_emissions)) +
-  geom_point(alpha = 0.5) +
-  geom_smooth(method = "lm", se = TRUE) +
-  scale_x_log10() +
+  geom_point(alpha = 0.5) +  # Points with transparency
+  geom_smooth(method = "lm", se = TRUE, show.legend = FALSE) +  # Linear model fit
+  scale_x_log10() +  # Log scale for x-axis
   labs(
     title = "Higher CO2 Emissions Per Capita is correlated with Higher Happiness",
     subtitle = paste("Happiness Score relative to CO2 Emissions Per Capita (Log Scale), r =", round(cor_co2, 2)),
     x = "CO2 Emissions Per Capita (Log Scale)",
     y = "Happiness Score",
+    size = "CO2 Emissions"
   ) +
-  theme_classic()+
-  theme(legend.position = "none")
+  theme_classic()
 ```
 
 ```{r}
@@ -465,7 +465,7 @@ ggplot(joined_data, aes(x = life_expectancy, y = happiness_score)) +
   geom_point(alpha = 0.5) +
   geom_smooth(method = "lm", se = TRUE) +
   labs(
-    title = "Longer Life Expectancy is correlated with higher Happiness",
+    title = "Longer Life Expectancy is correlated with Higher Happiness",
     subtitle = paste("Happiness Score relative to Life Expectancy, r =", round(cor_life_expectancy, 2)),
     x = "Life Expectancy",
     y = "Happiness Score"
@@ -493,7 +493,7 @@ ggplot(joined_data, aes(x = density_p_km2, y = happiness_score, size = urban_pop
 # Scatter plot for Happiness Score vs Urban Population Per Capita
 ggplot(joined_data, aes(x = urban_population_per_capita, y = happiness_score, size = urban_population)) +
   geom_point(alpha = 0.5) +
-  geom_smooth(method = "lm", se = TRUE) +
+  geom_smooth(method = "lm", se = TRUE, show.legend = FALSE) +
   labs(
     title = "Urban Population Per Capita is positively correlated to Happiness",
     subtitle = paste("Happiness Score relative to Urban Population Per Capita, r =", round(cor_urban, 2)),
@@ -502,8 +502,7 @@ ggplot(joined_data, aes(x = urban_population_per_capita, y = happiness_score, si
     size = "Absolute Urban Population"
   ) +
   theme_classic() +
-  theme(legend.key.size = unit(0.5, "lines"))+
-  theme(legend.position = "none")
+  theme(legend.key.size = unit(0.5, "lines"))
 ```
 
 ```{r}
