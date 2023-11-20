@@ -451,9 +451,9 @@ ggplot(joined_data, aes(x = co2_emissions_per_capita, y = happiness_score, size 
     subtitle = paste("Happiness Score relative to CO2 Emissions Per Capita (Log Scale), r =", round(cor_co2, 2)),
     x = "CO2 Emissions Per Capita (Log Scale)",
     y = "Happiness Score",
-    size = "Absolute CO2 Emissions"
   ) +
-  theme_classic()
+  theme_classic()+
+  theme(legend.position = "none")
 ```
 
 ```{r}
@@ -482,12 +482,11 @@ ggplot(joined_data, aes(x = density_p_km2, y = happiness_score, size = urban_pop
     title = "Population Density is inconclusively linked to Happiness",
     subtitle = paste("Happiness Score relative to Population Density, r =", round(cor_urban, 2)),
     x = "Population density",
-    y = "Happiness Score",
-    size = "Absolute Urban Population"
-  ) +
+    y = "Happiness Score") +
   theme_classic() +
   theme(legend.key.size = unit(0.5, "lines"))+
-  xlim(0, 500)
+  xlim(0, 500)+
+  theme(legend.position = "none")
 ```
 
 ```{r}
